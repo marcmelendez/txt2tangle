@@ -12,23 +12,25 @@ which parts of the text are intended as code.
 For example, a document for a typical *Hello world* program
 might look like this:
 
-> `=== Hello, World! ===`
+> ```
+> === Hello, World! ===
 >
-> `A "Hello, World!" example program.`
+> A "Hello, World!" example program.
 >
-> `%! codefile: helloworld.bc`
-> `print "Hello, world!\n";`
-> `quit();`
-> `%! codeend`
+> %! codefile: helloworld.bc
+> print "Hello, world!\n";
+> quit();
+> %! codeend
+> ```
 
 From this text file, **txt2tangle** would create the
 `helloworld.bc` file.
 
-As a matter of fact, *all* the files for this project were
+As a matter of fact, the files for this project were
 created by **txt2tangle** from just two plain text files:
 `txt2tangle.txt`, which contains the information to
-generate this README file, among others, and
-`txt2tangle.txt`, which contains the C code to make the
+generate this README file and the Makefile, among others,
+and `txt2tangle.txt`, which contains the C code to make the
 **txt2tangle** executable file.
 
 
@@ -58,4 +60,9 @@ and the program would identify strings such as
 ``// codefile: out.c``
 and
 ``// codeend``, for example.
+
+## Compiling
+
+After cloning the repository, compile with `make first`.
+From then on, you can compile by just running `make`.
 

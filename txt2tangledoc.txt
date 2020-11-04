@@ -148,5 +148,10 @@ and the program would identify strings such as
 and
 ``// codeend``, for example.
 
+## Compiling
+
+After cloning the repository, compile with `make first`.
+From then on, you can compile by just running `make`.
+
 %! codeend
 ...........................................................
