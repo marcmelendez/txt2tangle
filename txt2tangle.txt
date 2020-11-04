@@ -1,95 +1,39 @@
+%! codeblock: title
 /*****************************************************************************
  *                                 txt2tangle                                *
  *                   A very simple literate programming tool                 *
  *****************************************************************************/
+%! codeblockend
+                             === Main function ===
 
-/*** Standard libraries ***/
+General description of the main function.
+Only difficulty is building the string with the command format.
 
-# include <stdio.h>
-# include <stdlib.h>
-# include <string.h>
-# include <unistd.h>
+%! codefile: txt2tangle.c
+%! codeinsert: title
 
-/*** PREPROCESSOR OPTIONS ***/
-
-# ifndef MAX_RECURSION_LEVEL
-# define MAX_RECURSION_LEVEL 10
-# endif
-
-# ifndef COMMENT_LENGTH
-# define COMMENT_LENGTH 10
-# endif
-
-# ifndef DEFAULT_COMMAND_STRING
-# define DEFAULT_COMMAND_STRING "%!"
-# endif
-
-# ifndef TEXT_BUFFER_SIZE
-# define TEXT_BUFFER_SIZE 1500
-# endif
-
-/*** Definitions ***/
-
-typedef enum {false = 0, true} bool;
-
-/*** Auxiliary functions ***/
-
-/* Output code snippets from literate programming source file */
-int output_code(char * filename, char * command_string, char * command_fmt);
-
-/* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level);
-
-/* Output a buffer to a file as is (no format string interpretation) */
-int output_buffer(FILE * outputfile, char * txtbuf);
+%! codeinsert: definitions
 
 /***** Main program *****/
 
 int main(int argc, char * argv[])
 {
   /* Usage message */
-  if(argc < 2) {
-    fprintf(stderr, "txt2tangle: A very simple literate programming tool.\n\n"
-                    "Usage: %s [options] <file>\n\n"
-                    "Options:\n"
-                    "  -c <string>\tSpecify the string preceding txt2tangle commands (default is \"%%!\").\n\n", argv[0]);
-    return 0;
-  }
+  %! codeinsert: usage
 
   /* Read command-line options */
-  int i, j = 0;
-  char * filename = NULL;
-  char * command_string = NULL;
-  for(i = 0; i < argc; i++) {
-    if(argv[i][0] == '-') {
-      switch(argv[i][1]) {
-        case 'c':
-           if(i + 1 < argc) {
-             command_string = malloc(sizeof(char)*strlen(argv[i + 1]));
-             strcpy(command_string, argv[i + 1]);
-             i++;
-           }
-           else {
-             fprintf(stderr, "Error: expected argument after -c missing.\n");
-             return -1;
-           }
-           break;
-        default:
-           fprintf(stderr, "Error: unrecognised option (%s).\n", argv[i]);
-           return -1;
-      }
-    }
-    else {
-      filename = malloc(sizeof(char)*strlen(argv[i]));
-      strcpy(filename, argv[i]);
-    }
-  }
+  %! codeinsert: commandline
 
   /* Default command string */
   if(command_string == NULL) {
     command_string = malloc(sizeof(char)*strlen(DEFAULT_COMMAND_STRING));
     strcpy(command_string, DEFAULT_COMMAND_STRING);
   }
+%! codepause
+
+  Explanation.
+
+%! codecontinue: txt2tangle.c
 
   /* Build command format string */
   int command_fmt_size;
@@ -121,6 +65,11 @@ int main(int argc, char * argv[])
 
   return 0;
 }
+%! codepause
+
+                          === Auxiliary functions ===
+
+%! codecontinue: txt2tangle.c
 
 /* Output code snippets from literate programming source file */
 int output_code(char * filename, char * command_string, char * command_fmt)
@@ -176,6 +125,9 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
   return 0;
 }
+%! codepause
+
+%! codecontinue: txt2tangle.c
 /* Insert code from file */
 int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level)
 {
@@ -238,6 +190,9 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
 
   return 0;
 }
+%! codepause
+
+%! codecontinue: txt2tangle.c
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf) {
   char output_string[2*TEXT_BUFFER_SIZE];
@@ -262,3 +217,89 @@ int output_buffer(FILE * outputfile, char * txtbuf) {
 
   return 0;
 }
+%! codeend
+
+  %! codeblock: usage
+  if(argc < 2) {
+    fprintf(stderr, "txt2tangle: A very simple literate programming tool.\n\n"
+                    "Usage: %s [options] <file>\n\n"
+                    "Options:\n"
+                    "  -c <string>\tSpecify the string preceding txt2tangle commands (default is \"%%!\").\n\n", argv[0]);
+    return 0;
+  }
+  %! codeblockend
+
+
+  %! codeblock: commandline
+  int i, j = 0;
+  char * filename = NULL;
+  char * command_string = NULL;
+  for(i = 0; i < argc; i++) {
+    if(argv[i][0] == '-') {
+      switch(argv[i][1]) {
+        case 'c':
+           if(i + 1 < argc) {
+             command_string = malloc(sizeof(char)*strlen(argv[i + 1]));
+             strcpy(command_string, argv[i + 1]);
+             i++;
+           }
+           else {
+             fprintf(stderr, "Error: expected argument after -c missing.\n");
+             return -1;
+           }
+           break;
+        default:
+           fprintf(stderr, "Error: unrecognised option (%s).\n", argv[i]);
+           return -1;
+      }
+    }
+    else {
+      filename = malloc(sizeof(char)*strlen(argv[i]));
+      strcpy(filename, argv[i]);
+    }
+  }
+  %! codeblockend
+
+
+%! codeblock: definitions
+/*** Standard libraries ***/
+
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+# include <unistd.h>
+
+/*** PREPROCESSOR OPTIONS ***/
+
+# ifndef MAX_RECURSION_LEVEL
+# define MAX_RECURSION_LEVEL 10
+# endif
+
+# ifndef COMMENT_LENGTH
+# define COMMENT_LENGTH 10
+# endif
+
+# ifndef DEFAULT_COMMAND_STRING
+# define DEFAULT_COMMAND_STRING "%!"
+# endif
+
+# ifndef TEXT_BUFFER_SIZE
+# define TEXT_BUFFER_SIZE 1500
+# endif
+
+/*** Definitions ***/
+
+typedef enum {false = 0, true} bool;
+
+/*** Auxiliary functions ***/
+
+/* Output code snippets from literate programming source file */
+int output_code(char * filename, char * command_string, char * command_fmt);
+
+/* Insert code from file */
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level);
+
+/* Output a buffer to a file as is (no format string interpretation) */
+int output_buffer(FILE * outputfile, char * txtbuf);
+%! codeblockend
+

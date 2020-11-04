@@ -29,8 +29,8 @@ From this text file, **txt2tangle** would create the
 As a matter of fact, the files for this project were
 created by **txt2tangle** from just two plain text files:
 `txt2tangle.txt`, which contains the information to
-generate this README file and the Makefile, among others,
-and `txt2tangle.txt`, which contains the C code to make the
+generate this README file and the Makefile, and
+`txt2tangle.txt`, which contains the C code to make the
 **txt2tangle** executable file.
 
 
@@ -43,6 +43,7 @@ output.
 * `%! codecontinue: <filename>` resumes output to the file
 specified.
 * `%! codeblock: <blockname>` specifies a block of code.
+* `%! codeblockend` marks the end of a block of code.
 * `%! codeinsert: <blockname>` or
 `%! codeinsert: <blockname> src: <filename>` inserts the
 specified block from the source file mentioned. If no
