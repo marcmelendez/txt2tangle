@@ -1,0 +1,150 @@
+***********************************************************
+*   txt2tangle: A very simple literate programming tool   *
+***********************************************************
+
+Charmed with Donald Knuth's concept of programming with
+human readers in mind, but being too lazy to install and
+learn how to use a proper tool such as CWEB, I decided to
+work on a one-day DIY tool which enabled me to extract code
+snippets from a plain text document and put them together
+in the right order. I wanted to make something very simple
+but useful to me, so I came up with a system that would
+allow me to extract code from plain ascii text files, but
+also other source code files, such as LaTeX, txt2tags or C.
+
+To understand the basic idea, consider the following code
+snippet with the beginning of the README file for this
+project, which goes from the "%! codefile" statement to
+the "%! codepause" statement.
+
+...........................................................
+%! codefile: README.md
+# txt2tangle: A very simple literate programming tool
+
+I create readable code with **txt2tangle**. Instead of
+writing for a computer, I write for humans. Beginning with
+an explanation in a plain text file (or perhaps a source
+code file, such as a LaTeX document), I simply insert
+**txt2tangle** commands on their own line, preceded by a
+special string ("%!" by default, but that may be changed as
+seen [below](#command-line-options)) and use them to mark
+which parts of the text are intended as code.
+
+For example, a document for a typical *Hello world* program
+might look like this:
+
+> `=== Hello, World! ===`
+>
+> `A "Hello, World!" example program.`
+>
+> `%! codefile: helloworld.bc`
+> `print "Hello, world!\n";`
+> `quit();`
+> `%! codeend`
+
+From this text file, **txt2tangle** would create the
+`helloworld.bc` file.
+
+As a matter of fact, *all* the files for this project were
+created by **txt2tangle** from just two plain text files:
+`txt2tangle.txt`, which contains the information to
+generate this README file, among others, and
+`txt2tangle.txt`, which contains the C code to make the
+**txt2tangle** executable file.
+
+%! codepause
+...........................................................
+
+As you can see, we begin writing code into a file with the
+"%! codefile:" instruction. The end of the file is marked
+with "%! codeend", but we might wish to pause writing to a
+file (as above) with "%! codepause". That means that *this*
+paragraph will not end up in the README file. To resume
+output to the code file, use "%! codecontinue:", followed
+by the file name.
+
+You may open several files in your source document, and you
+need not insert a "%! codeend" to reach the end of one file
+before starting the output into the next one.
+
+To illustrate this, let us create the project Makefile now,
+even though we have not finished writing to README.md.
+
+...........................................................
+%! codefile: Makefile
+all:
+	./txt2tangle txt2tangledoc.txt
+	gcc -Wall -O2 -o txt2tangle txt2tangle.c
+
+first:
+	gcc -Wall -O2 -o txt2tangle txt2tangle.c
+	./txt2tangle txt2tangledoc.txt
+%! codeend
+...........................................................
+
+Although we may have written to several files, we had to do
+so sequentially. However, we might wish to leave a section
+of code for an appendix at the end, or explain a section of
+code that will be used later on. With this in mind, I
+defined code blocks. Here is an example of a code block:
+
+...........................................................
+%! codeblock: howto
+
+## How to use **txt2tangle**
+
+For a simple tutorial explaining how to write code with
+**txt2tangle**, refer to the `txt2tangledoc.txt` text file
+that generated the code for this `README.md`. To see how
+**txt2tangle** works, you can either read the C code
+directly (`txt2tangle.c`) or read the more literate
+`txt2tangle.txt`file that generated it.
+
+%! codeblockend
+...........................................................
+
+The code above will be inserted into the output file with
+an "%! insertcode" command, later on, when I list all the
+txt2tangle statements in the README file. You can also
+bring in code from another source file by adding the
+filename to the code insertion command, writing something
+like "%! insertcode: myBlock src: myOtherFile". Code blocks
+may include "%! insertcode" statements.
+
+Thus concludes our tour of txt2tangle. That is all there is
+to the program. A quick-reference list of the commands
+follows.
+
+...........................................................
+%! codecontinue: README.md
+
+## **txt2tangle** commands
+
+* `%! codefile: <filename>` opens a source code file for
+output.
+* `%! codeend` marks the end of the source code file.
+* `%! codepause` stops sending output to the code file.
+* `%! codecontinue: <filename>` resumes output to the file
+specified.
+* `%! codeblock: <blockname>` specifies a block of code.
+* `%! codeinsert: <blockname>` or
+`%! codeinsert: <blockname> src: <filename>` inserts the
+specified block from the source file mentioned. If no
+source file was named, the current file being read is
+assumed.
+
+%! insertcode: howto
+
+## Command-line options
+
+The only command-line option is `-c`, which allows you to
+change the default string marking the beginning of a
+**txt2tangle** command. You could write, for example
+``txt2tangle -c // example.txt``
+and the program would identify strings such as
+``// codefile: out.c``
+and
+``// codeend``, for example.
+
+%! codeend
+...........................................................
