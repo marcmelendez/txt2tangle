@@ -67,3 +67,28 @@ and
 After cloning the repository, compile with `make first`.
 From then on, you can compile by just running `make`.
 
+## txt2tangle + LaTeX
+
+An attractive way to produce code and well typeset
+documentation involves writing everything in a single LaTeX
+file. A simple solution based on the **listings** package
+includes the txt2tangle code in the code listing and
+specifies them as comments not to be reproduced in the
+text document. A minimal example follows.
+
+> `\documentclass{article}`
+> `\usepackage{listings}`
+>
+> `\begin{document}`
+> `\lstset{language = C,morecomment = [is]{\%!}{\^^M}}`
+>
+> `\begin{lstlisting}[frame=single]`
+> `%! codefile: helloworld.bc`
+> `print "Hello, World!\n";`
+> `quit();`
+> `%! codeend`
+> `\end{lstlisting}`
+>
+> `\end{document}`
+
+
