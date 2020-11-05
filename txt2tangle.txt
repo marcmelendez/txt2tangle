@@ -1,14 +1,27 @@
 %! codeblock: title
 /*****************************************************************************
- *                                 txt2tangle                                *
+ *                                  txt2tangle                               *
  *                   A very simple literate programming tool                 *
+ *                            Marc Meléndez Schofield                        *
  *****************************************************************************/
 %! codeblockend
-                             === Main function ===
 
-General description of the main function.
-Only difficulty is building the string with the command format.
+The code below implements an extremely basic literate programming tool. When
+executed on a text file such as this one, it uses the txt2tangle commands (here
+preceded by the "%!" sign) to extract and put together the code snippets. This
+file, for example, produces the txt2tangle.c source code.
 
+/******************************* Main function *******************************/
+
+The main function does not carry out much of they heavy lifting in the code. It
+begins with calls to standard libraries, definitions and function declarations,
+all grouped together into the definitions code snippet in the appendix at the
+end. Then it constructs the command format string, a pattern recognition string
+to identify the lines in the input file that begin with a text2tangle command.
+Finally, it calls the output_code function, in charge of printing out the code
+snippets, and it ends by cleaning up.
+
+...............................................................................
 %! codefile: txt2tangle.c
 %! codeinsert: title
 
@@ -24,29 +37,41 @@ int main(int argc, char * argv[])
   /* Read command-line options */
   %! codeinsert: commandline
 
+%! codepause
+...............................................................................
+
+Some annoying complications emerge when constructing the command format string.
+You see, the code uses sscanf to search for txt2tangle commands in the text
+file. We wish to find text strings such as "%!" in the text file. However, you
+cannot just give a chain like this to sscanf, as it will interpret backslashes
+and percent signs as escape and format specifying characters. Therefore, you
+need to double these characters in order to make sscanf interpret them
+literally.
+
+...............................................................................
+%! codecontinue: txt2tangle.c
+
   /* Default command string */
   if(command_string == NULL) {
     command_string = malloc(sizeof(char)*strlen(DEFAULT_COMMAND_STRING));
     strcpy(command_string, DEFAULT_COMMAND_STRING);
   }
-%! codepause
-
-  Explanation.
-
-%! codecontinue: txt2tangle.c
 
   /* Build command format string */
   int command_fmt_size;
   char * command_fmt;
 
   command_fmt_size = strlen(command_string);
+  /* Count backslashes and percents twice */
   for(i = 0; i < strlen(command_string); i++)
-    if(command_string[i] == '\\' || command_string[i] == '%') command_fmt_size++;
+    if(command_string[i] == '\\' || command_string[i] == '%')
+      command_fmt_size++;
 
   command_fmt = malloc(sizeof(char)*(command_fmt_size + strlen(" %[^: \n]")));
 
-  for(i = 0; i < strlen(command_string); i++) { /* Deal with the backslash and percent characters */
+  for(i = 0; i < strlen(command_string); i++) {
     command_fmt[j] = command_string[i]; j++;
+    /* Deal with the backslash and percent characters */
     if(command_string[i] == '\\' || command_string[i] == '%') {
      command_fmt[j] = command_string[i];
      j++;
@@ -66,9 +91,33 @@ int main(int argc, char * argv[])
   return 0;
 }
 %! codepause
+...............................................................................
 
-                          === Auxiliary functions ===
+/************************** Auxiliary functions ******************************/
 
+Turning to the slightly more interesting auxiliary functions, we first
+encounter output_code. The point here is to open and scan the input text file
+line by line until a txt2tangle command appears. To this end, the function
+looks at every first word, checking for the command string at the beginning.
+When it matches the right pattern, the program enters an if else ladder to
+choose the appropriate action. The "codefile" command opens the output code
+file and activates printing, so that scanned lines that do not contain a
+command end up in the code file. "codepause" and "codeend" close the output
+file. When the program runs into "codecontinue" it behaves like codefile, but
+opens the output stream with the append flag activated.
+
+Due to the already mentioned problem with percents, we need a function
+equivalent to fprintf that ignores format specifiers. I have called it
+output_buffer.
+
+Concerning code blocks, when the program comes across a "codeinsert"
+instruction, it should scan the right input file looking for a code block with
+the right name and append it to the current output file. Now code blocks might
+also include "codeinsert" instructions, so we must allow for recursivity. In
+consequence, the "codeinsert" command launches the insert_code function, which
+might in turn call itself.
+
+...............................................................................
 %! codecontinue: txt2tangle.c
 
 /* Output code snippets from literate programming source file */
@@ -90,28 +139,38 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
   /* Read source file and output code snippets */
   while(1) { /* Find the next command string */
-    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, sourcefile)) break; /* Read next line */
+    /* Read next line */
+    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, sourcefile)) break;
+
+    /* First word at the beginning of a line */
     word[0] = '\0'; /* Clear previous word */
-    sscanf(txtbuf, "%s", word); /* First word at the beginning of a line */
-    if(!strncmp(word, command_string, sizeof(command_string[0]))) { /* Command found */
+    sscanf(txtbuf, "%s", word);
+
+    /* See if the first word was a command */
+    if(!strncmp(word, command_string,
+                sizeof(command_string[0]))) { /* Command found */
       command[0] = '\0'; /* Clear previous command */
       sscanf(txtbuf, command_fmt, command); /* Read command */
       /* Choose action */
-      if((newfile = !strcmp(command, "codefile")) || !strcmp(command, "codecontinue")) { /* New code file */
-        sscanf(txtbuf, "%*[^:]: %s", outputfilename); /* Read output file name */
+      if((newfile = !strcmp(command, "codefile")) /* Open code file */
+         || !strcmp(command, "codecontinue")) {
+        sscanf(txtbuf, "%*[^:]: %s",
+               outputfilename); /* Read output file name */
         if(newfile)
           outputfile = fopen(outputfilename, "w"); /* Open file */
         else
           outputfile = fopen(outputfilename, "a"); /* Reopen file */
         if(outputfile == NULL) {
-          fprintf(stderr, "Error: Unable to open file (%s).\n", outputfilename);
+          fprintf(stderr, "Error: Unable to open file (%s).\n",
+                  outputfilename);
           return -1;
         }
-        printing = true;
-      } else if(!strcmp(command, "codeend") || !strcmp(command, "codepause")) { /* Stop code output */
+        printing = true; /* Turn on printing */
+      } else if(!strcmp(command, "codeend")
+                || !strcmp(command, "codepause")) { /* Stop code output */
         printing = false;
         fclose(outputfile);
-      } else if(!strcmp(command, "codeinsert")) {
+      } else if(!strcmp(command, "codeinsert")) { /* Insert a code block */
         insert_code(txtbuf, command_fmt, filename, outputfile, 0);
       }
     }
@@ -126,17 +185,34 @@ int output_code(char * filename, char * command_string, char * command_fmt)
   return 0;
 }
 %! codepause
+...............................................................................
 
+The insert_code function follows the rather inefficient (but easier to program)
+strategy of opening the input file and running through it until it finds a code
+block with the right name. It then activates printing, if the code block was
+found (absent code blocks result in an error message and termination). It
+proceeds to copy every scanned line to the current output file until a
+"codeblockend" statement appears. However, if it runs into an "codeinsert"
+instruction, it calls itself and copies the new code block into the output file
+before continuing.
+
+The possibility of infinite recursion is avoided by means of the integer
+recursion_level variable which allows no more than MAX_RECURSION_LEVEL layers
+of code block nesting.
+
+...............................................................................
 %! codecontinue: txt2tangle.c
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level)
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+                FILE * outputfile, int recursion_level)
 {
   if(recursion_level >= MAX_RECURSION_LEVEL) {
     fprintf(stderr, "Error: maximum recursion level exceeded.\n");
     exit(-2);
   }
 
-  char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE], command[20];
+  char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE];
+  char command[20];
   char name[TEXT_BUFFER_SIZE];
   FILE * inputfile = NULL;
   bool located_codeblock;
@@ -160,7 +236,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
    	sscanf(txtbuf, command_fmt, command); /* Look for codeblock command */
    	if(!strcmp(command, "codeblock")) {
      	sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
-     	if(!strncmp(name, codeblockname, sizeof(codeblockname[0]))) { /* Block found */
+     	if(!strncmp(name, codeblockname,
+         sizeof(codeblockname[0]))) { /* Block found */
        	located_codeblock = true;
        	break;
      	}
@@ -169,7 +246,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
 
  	/* Error message if the block was not found */
  	if(!located_codeblock) {
-   	fprintf(stderr, "Error: code block %s not located in file %s.\n", codeblockname, inputfilename);
+   	fprintf(stderr, "Error: code block %s not located in file %s.\n",
+            codeblockname, inputfilename);
    	exit(-3);
  	}
 
@@ -182,7 +260,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
      	fclose(inputfile);
      	break;
     } else if(!strcmp(command, "codeinsert")) {
-          insert_code(txtbuf, command_fmt, inputfilename, outputfile, recursion_level + 1);
+          insert_code(txtbuf, command_fmt, inputfilename, outputfile,
+                      recursion_level + 1);
     }	else {
      	output_buffer(outputfile, txtbuf);
    	}
@@ -191,22 +270,25 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
   return 0;
 }
 %! codepause
+...............................................................................
 
+The fprintf replacement output_buffer function does no more than read the text
+buffer and duplicate percent signs, to make sure that they are interpreted
+literally.
+
+...............................................................................
 %! codecontinue: txt2tangle.c
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf) {
   char output_string[2*TEXT_BUFFER_SIZE];
-  int i, j, string_size = strlen(txtbuf);
-
-  for(i = 0; i < strlen(txtbuf); i++)
-    if(txtbuf[i] == '\\' || txtbuf[i] == '%') string_size++;
+  int i, j;
 
   output_string[0] = '\0';
 
   j = 0;
   for(i = 0; i < strlen(txtbuf); i++) {
     output_string[j] = txtbuf[i]; j++;
-    if(/* txtbuf[i] == '\\' || */ txtbuf[i] == '%') {
+    if(txtbuf[i] == '%') {
      output_string[j] = txtbuf[i];
      j++;
     }
@@ -218,13 +300,23 @@ int output_buffer(FILE * outputfile, char * txtbuf) {
   return 0;
 }
 %! codeend
+...............................................................................
 
+/******************************** Appendix ***********************************/
+
+Finally, we turn to the usage message, command line options (or should I say
+option) and definitions. Any argument not preceded by an option string ("-c")
+will be interpreted as a file name, but only the last file listed will be
+read.
+
+...............................................................................
   %! codeblock: usage
   if(argc < 2) {
     fprintf(stderr, "txt2tangle: A very simple literate programming tool.\n\n"
                     "Usage: %s [options] <file>\n\n"
                     "Options:\n"
-                    "  -c <string>\tSpecify the string preceding txt2tangle commands (default is \"%%!\").\n\n", argv[0]);
+                    "  -c <string>\tSpecify the string preceding txt2tangle "
+                    "commands (default is \"%%!\").\n\n", argv[0]);
     return 0;
   }
   %! codeblockend
@@ -259,24 +351,34 @@ int output_buffer(FILE * outputfile, char * txtbuf) {
     }
   }
   %! codeblockend
+...............................................................................
 
+As you can see below, the standard library calls are, well, standard, and there
+is nothing confusing about the definition of a boolean variable type or the
+function declarations.
 
+I will end by explaining that the preprocessor options indicate the maximum
+level of code block nesting (MAX_RECURSION_LEVEL), default command string to
+mark txt2tangle commands (DEFAULT_COMMAND_STRING) and the size of the text
+buffer (TEXT_BUFFER_SIZE). If you wish to abuse the readers of your code by
+writing lines longer that 1500 characters or hiding blocks within blocks like
+Russian dolls, then you will need to change these values, but in that case you
+may well be the type of person that would prefer to write code in lisp or the
+glorious packaging within packaging reserved for the most abstract
+object-oriented programming.
+
+...............................................................................
 %! codeblock: definitions
 /*** Standard libraries ***/
 
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <unistd.h>
 
 /*** PREPROCESSOR OPTIONS ***/
 
 # ifndef MAX_RECURSION_LEVEL
 # define MAX_RECURSION_LEVEL 10
-# endif
-
-# ifndef COMMENT_LENGTH
-# define COMMENT_LENGTH 10
 # endif
 
 # ifndef DEFAULT_COMMAND_STRING
@@ -297,9 +399,10 @@ typedef enum {false = 0, true} bool;
 int output_code(char * filename, char * command_string, char * command_fmt);
 
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level);
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+                FILE * outputfile, int recursion_level);
 
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf);
 %! codeblockend
-
+...............................................................................

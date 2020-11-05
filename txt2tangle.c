@@ -1,6 +1,7 @@
 /*****************************************************************************
- *                                 txt2tangle                                *
+ *                                  txt2tangle                               *
  *                   A very simple literate programming tool                 *
+ *                            Marc Meléndez Schofield                        *
  *****************************************************************************/
 
 /*** Standard libraries ***/
@@ -8,16 +9,11 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <unistd.h>
 
 /*** PREPROCESSOR OPTIONS ***/
 
 # ifndef MAX_RECURSION_LEVEL
 # define MAX_RECURSION_LEVEL 10
-# endif
-
-# ifndef COMMENT_LENGTH
-# define COMMENT_LENGTH 10
 # endif
 
 # ifndef DEFAULT_COMMAND_STRING
@@ -38,7 +34,8 @@ typedef enum {false = 0, true} bool;
 int output_code(char * filename, char * command_string, char * command_fmt);
 
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level);
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+                FILE * outputfile, int recursion_level);
 
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf);
@@ -52,7 +49,8 @@ int main(int argc, char * argv[])
     fprintf(stderr, "txt2tangle: A very simple literate programming tool.\n\n"
                     "Usage: %s [options] <file>\n\n"
                     "Options:\n"
-                    "  -c <string>\tSpecify the string preceding txt2tangle commands (default is \"%%!\").\n\n", argv[0]);
+                    "  -c <string>\tSpecify the string preceding txt2tangle "
+                    "commands (default is \"%%!\").\n\n", argv[0]);
     return 0;
   }
 
@@ -85,6 +83,7 @@ int main(int argc, char * argv[])
     }
   }
 
+
   /* Default command string */
   if(command_string == NULL) {
     command_string = malloc(sizeof(char)*strlen(DEFAULT_COMMAND_STRING));
@@ -96,13 +95,16 @@ int main(int argc, char * argv[])
   char * command_fmt;
 
   command_fmt_size = strlen(command_string);
+  /* Count backslashes and percents twice */
   for(i = 0; i < strlen(command_string); i++)
-    if(command_string[i] == '\\' || command_string[i] == '%') command_fmt_size++;
+    if(command_string[i] == '\\' || command_string[i] == '%')
+      command_fmt_size++;
 
   command_fmt = malloc(sizeof(char)*(command_fmt_size + strlen(" %[^: \n]")));
 
-  for(i = 0; i < strlen(command_string); i++) { /* Deal with the backslash and percent characters */
+  for(i = 0; i < strlen(command_string); i++) {
     command_fmt[j] = command_string[i]; j++;
+    /* Deal with the backslash and percent characters */
     if(command_string[i] == '\\' || command_string[i] == '%') {
      command_fmt[j] = command_string[i];
      j++;
@@ -141,28 +143,38 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
   /* Read source file and output code snippets */
   while(1) { /* Find the next command string */
-    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, sourcefile)) break; /* Read next line */
+    /* Read next line */
+    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, sourcefile)) break;
+
+    /* First word at the beginning of a line */
     word[0] = '\0'; /* Clear previous word */
-    sscanf(txtbuf, "%s", word); /* First word at the beginning of a line */
-    if(!strncmp(word, command_string, sizeof(command_string[0]))) { /* Command found */
+    sscanf(txtbuf, "%s", word);
+
+    /* See if the first word was a command */
+    if(!strncmp(word, command_string,
+                sizeof(command_string[0]))) { /* Command found */
       command[0] = '\0'; /* Clear previous command */
       sscanf(txtbuf, command_fmt, command); /* Read command */
       /* Choose action */
-      if((newfile = !strcmp(command, "codefile")) || !strcmp(command, "codecontinue")) { /* New code file */
-        sscanf(txtbuf, "%*[^:]: %s", outputfilename); /* Read output file name */
+      if((newfile = !strcmp(command, "codefile")) /* Open code file */
+         || !strcmp(command, "codecontinue")) {
+        sscanf(txtbuf, "%*[^:]: %s",
+               outputfilename); /* Read output file name */
         if(newfile)
           outputfile = fopen(outputfilename, "w"); /* Open file */
         else
           outputfile = fopen(outputfilename, "a"); /* Reopen file */
         if(outputfile == NULL) {
-          fprintf(stderr, "Error: Unable to open file (%s).\n", outputfilename);
+          fprintf(stderr, "Error: Unable to open file (%s).\n",
+                  outputfilename);
           return -1;
         }
-        printing = true;
-      } else if(!strcmp(command, "codeend") || !strcmp(command, "codepause")) { /* Stop code output */
+        printing = true; /* Turn on printing */
+      } else if(!strcmp(command, "codeend")
+                || !strcmp(command, "codepause")) { /* Stop code output */
         printing = false;
         fclose(outputfile);
-      } else if(!strcmp(command, "codeinsert")) {
+      } else if(!strcmp(command, "codeinsert")) { /* Insert a code block */
         insert_code(txtbuf, command_fmt, filename, outputfile, 0);
       }
     }
@@ -177,14 +189,16 @@ int output_code(char * filename, char * command_string, char * command_fmt)
   return 0;
 }
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * outputfile, int recursion_level)
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+                FILE * outputfile, int recursion_level)
 {
   if(recursion_level >= MAX_RECURSION_LEVEL) {
     fprintf(stderr, "Error: maximum recursion level exceeded.\n");
     exit(-2);
   }
 
-  char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE], command[20];
+  char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE];
+  char command[20];
   char name[TEXT_BUFFER_SIZE];
   FILE * inputfile = NULL;
   bool located_codeblock;
@@ -208,7 +222,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
    	sscanf(txtbuf, command_fmt, command); /* Look for codeblock command */
    	if(!strcmp(command, "codeblock")) {
      	sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
-     	if(!strncmp(name, codeblockname, sizeof(codeblockname[0]))) { /* Block found */
+     	if(!strncmp(name, codeblockname,
+         sizeof(codeblockname[0]))) { /* Block found */
        	located_codeblock = true;
        	break;
      	}
@@ -217,7 +232,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
 
  	/* Error message if the block was not found */
  	if(!located_codeblock) {
-   	fprintf(stderr, "Error: code block %s not located in file %s.\n", codeblockname, inputfilename);
+   	fprintf(stderr, "Error: code block %s not located in file %s.\n",
+            codeblockname, inputfilename);
    	exit(-3);
  	}
 
@@ -230,7 +246,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
      	fclose(inputfile);
      	break;
     } else if(!strcmp(command, "codeinsert")) {
-          insert_code(txtbuf, command_fmt, inputfilename, outputfile, recursion_level + 1);
+          insert_code(txtbuf, command_fmt, inputfilename, outputfile,
+                      recursion_level + 1);
     }	else {
      	output_buffer(outputfile, txtbuf);
    	}
@@ -241,17 +258,14 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile, FILE * ou
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf) {
   char output_string[2*TEXT_BUFFER_SIZE];
-  int i, j, string_size = strlen(txtbuf);
-
-  for(i = 0; i < strlen(txtbuf); i++)
-    if(txtbuf[i] == '\\' || txtbuf[i] == '%') string_size++;
+  int i, j;
 
   output_string[0] = '\0';
 
   j = 0;
   for(i = 0; i < strlen(txtbuf); i++) {
     output_string[j] = txtbuf[i]; j++;
-    if(/* txtbuf[i] == '\\' || */ txtbuf[i] == '%') {
+    if(txtbuf[i] == '%') {
      output_string[j] = txtbuf[i];
      j++;
     }
