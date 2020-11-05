@@ -204,54 +204,54 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
   bool located_codeblock;
 
   /* Read code block name (and input file name, if necessary)  */
- 	if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) == 2) {
-   	inputfile = fopen(inputfilename, "r");
+  if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) == 2) {
+    inputfile = fopen(inputfilename, "r");
   } else {
-   	inputfile = fopen(defaultfile, "r");
- 	}
- 	if(inputfile == NULL) {
-   	fprintf(stderr, "Error: Unable to open file (%s).\n", inputfilename);
-   	return -1;
+    inputfile = fopen(defaultfile, "r");
+  }
+  if(inputfile == NULL) {
+    fprintf(stderr, "Error: Unable to open file (%s).\n", inputfilename);
+    return -1;
   }
 
- 	/* Find beginning of code block */
- 	located_codeblock = false;
- 	while(1) {
-   	if(!fgets(txtbuf, TEXT_BUFFER_SIZE, inputfile)) break; /* Read next line */
-   	command[0] = '\0'; /* Clear previous word */
-   	sscanf(txtbuf, command_fmt, command); /* Look for codeblock command */
-   	if(!strcmp(command, "codeblock")) {
-     	sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
-     	if(!strncmp(name, codeblockname,
-         sizeof(codeblockname[0]))) { /* Block found */
-       	located_codeblock = true;
-       	break;
-     	}
-   	}
- 	}
+  /* Find beginning of code block */
+  located_codeblock = false;
+  while(1) {
+    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, inputfile)) break; /* Read next line */
+    command[0] = '\0'; /* Clear previous word */
+    sscanf(txtbuf, command_fmt, command); /* Look for codeblock command */
+    if(!strcmp(command, "codeblock")) {
+      sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
+      if(!strncmp(name, codeblockname,
+        sizeof(codeblockname[0]))) { /* Block found */
+        located_codeblock = true;
+        break;
+      }
+    }
+  }
 
- 	/* Error message if the block was not found */
- 	if(!located_codeblock) {
-   	fprintf(stderr, "Error: code block %s not located in file %s.\n",
+  /* Error message if the block was not found */
+  if(!located_codeblock) {
+    fprintf(stderr, "Error: code block %s not located in file %s.\n",
             codeblockname, inputfilename);
-   	exit(-3);
- 	}
+    exit(-3);
+  }
 
   /* Print out block until end is reached */
- 	while(1) {
-   	if(!fgets(txtbuf, TEXT_BUFFER_SIZE, inputfile)) break; /* Read next line */
+  while(1) {
+    if(!fgets(txtbuf, TEXT_BUFFER_SIZE, inputfile)) break; /* Read next line */
     command[0] = '\0'; /* Clear previous command */
-   	sscanf(txtbuf, command_fmt, command);
-   	if(!strcmp(command, "codeblockend")) { /* Stop at end of block */
-     	fclose(inputfile);
-     	break;
+    sscanf(txtbuf, command_fmt, command);
+    if(!strcmp(command, "codeblockend")) { /* Stop at end of block */
+      fclose(inputfile);
+      break;
     } else if(!strcmp(command, "codeinsert")) {
-          insert_code(txtbuf, command_fmt, inputfilename, outputfile,
-                      recursion_level + 1);
-    }	else {
-     	output_buffer(outputfile, txtbuf);
-   	}
- 	}
+       insert_code(txtbuf, command_fmt, inputfilename, outputfile,
+                   recursion_level + 1);
+    } else {
+      output_buffer(outputfile, txtbuf);
+    }
+  }
 
   return 0;
 }
