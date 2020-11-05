@@ -34,6 +34,17 @@ generate this README file and the Makefile, and
 **txt2tangle** executable file.
 
 
+
+## How to use **txt2tangle**
+
+For a simple tutorial explaining how to write code with
+**txt2tangle**, refer to the `txt2tangledoc.txt` text file
+that generated the code for this `README.md`. To see how
+**txt2tangle** works, you can either read the C code
+directly (`txt2tangle.c`) or read the more literate
+`txt2tangle.txt`file that generated it.
+
+
 ## **txt2tangle** commands
 
 * `%! codefile: <filename>` opens a source code file for
@@ -49,7 +60,6 @@ specified.
 specified block from the source file mentioned. If no
 source file was named, the current file being read is
 assumed.
-
 
 ## Command-line options
 
@@ -81,7 +91,7 @@ text document. A minimal example follows.
 > \usepackage{listings}
 >
 > \begin{document}
-> \lstset{language = C,morecomment = [is]{\%!}{\^^M}}
+> \lstset{morecomment = [is]{\%!}{\^^M}}
 >
 > \begin{lstlisting}[frame=single]
 > %! codefile: helloworld.bc
