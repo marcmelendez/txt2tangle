@@ -76,19 +76,21 @@ includes the txt2tangle code in the code listing and
 specifies them as comments not to be reproduced in the
 text document. A minimal example follows.
 
-> `\documentclass{article}`
-> `\usepackage{listings}`
+>```
+> \documentclass{article}
+> \usepackage{listings}
 >
-> `\begin{document}`
-> `\lstset{language = C,morecomment = [is]{\%!}{\^^M}}`
+> \begin{document}
+> \lstset{language = C,morecomment = [is]{\%!}{\^^M}}
 >
-> `\begin{lstlisting}[frame=single]`
-> `%! codefile: helloworld.bc`
-> `print "Hello, World!\n";`
-> `quit();`
-> `%! codeend`
-> `\end{lstlisting}`
+> \begin{lstlisting}[frame=single]
+> %! codefile: helloworld.bc
+> print "Hello, World!\n";
+> quit();
+> %! codeend
+> \end{lstlisting}
 >
-> `\end{document}`
+> \end{document}
+>```
 
 
