@@ -160,11 +160,11 @@ From then on, you can compile by just running `make`.
 An attractive way to produce code and well typeset
 documentation involves writing everything in a single LaTeX
 file. A simple solution based on the **listings** package
-includes the txt2tangle code in the code listing and
+includes the **txt2tangle** code in the code listing and
 specifies them as comments not to be reproduced in the
 text document. A minimal example follows.
 
->```
+>```LaTeX
 > \documentclass{article}
 > \usepackage{listings}
 >
