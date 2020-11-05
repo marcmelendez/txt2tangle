@@ -164,7 +164,17 @@ txt2tangle in combination with other source codes.
 ...........................................................
 %! codecontinue: README.md
 
-## txt2tangle + LaTeX
+## **txt2tangle** inside other code files
+
+In addition to using **txt2tangle** with regular text files
+to write text and code, you could combine its instructions
+with other source codes. For example, you could include
+your code with an explanatory LaTeX document or, conversely,
+you might prefer to include LaTeX commands within your C
+source code, which can then be extracted to create the
+documentation.
+
+### txt2tangle + LaTeX
 
 An attractive way to produce code and well typeset
 documentation involves writing everything in a single LaTeX
@@ -190,7 +200,7 @@ text document. A minimal example follows.
 > \end{document}
 >```
 
-## txt2tangle + C/C++
+### txt2tangle + C/C++
 
 Easily include code within C multiline comments. Remember
 that **txt2tangle** instructions must be the first thing on
@@ -201,7 +211,7 @@ and `sine.gnuplot`. Assuming you have **gcc**, **make** and
 and represent the output graphically.
 
 >```C
-> /* sine.c sin(x) values in the interval [0, 2 pi] */
+> /* sine.c: sin(x) values in the interval [0, 2 pi] */
 >
 > # include <stdio.h>
 > # include <math.h>
