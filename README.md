@@ -86,7 +86,7 @@ with other source codes. For example, you could include
 your code with an explanatory LaTeX document or, conversely,
 you might prefer to include LaTeX commands within your C
 source code, which can then be extracted to create the
-documentation.
+documentation. A few examples follow.
 
 ### txt2tangle + LaTeX
 
