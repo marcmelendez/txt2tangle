@@ -161,3 +161,32 @@ and represent the output graphically.
 > }
 >```
 
+### **txt2tangle** + txt2tags
+
+An easy way to combine **txt2tangle** with txt2tags just
+commands the preprocessor to eliminate all **txt2tags**
+instructions before parsing, as below.
+
+>`````
+> txtweb: a simple DIY literate programming tool
+> M. Meléndez
+> %%date(%d/%m/%y)
+>
+> %! preproc: '%!([ \t]*)codefile:(.*)$' ''
+> %! preproc: '%!([ \t]*)codeblock:(.*)$' ''
+> %! preproc: '%!([ \t]*)codeinsert:(.*)$' ''
+> %! preproc: '%!([ \t]*)codepause(.*)$' ''
+> %! preproc: '%!([ \t]*)codeend(.*)$' ''
+>
+> =txt2tangle + txt2tags example=
+>
+> A //Hello, World!// example should suffice to
+> explain how to use **txt2tangle** in combination
+> with **txt2tags**.
+> ```
+> %! codefile: helloworld.bc
+> print "Hello, World!\n"
+> %! codeend
+> ```
+>`````
+

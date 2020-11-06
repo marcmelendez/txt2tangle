@@ -247,8 +247,6 @@ and represent the output graphically.
 > }
 >```
 
-%! codeend
-
 ### **txt2tangle** + txt2tags
 
 An easy way to combine **txt2tangle** with txt2tags just
@@ -278,4 +276,5 @@ instructions before parsing, as below.
 > ```
 >`````
 
+%! codeend
 ...........................................................
