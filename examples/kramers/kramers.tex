@@ -11,6 +11,7 @@
 \usepackage{comment}
 \usepackage{graphicx}
 \usepackage{listings}
+\usepackage{hyperref}
 
 \title{Escape rate for a Brownian particle in a radial cubic spline trap}
 \author{Marc Meléndez}
@@ -90,11 +91,12 @@ parameters.
 \begin{lstlisting}[frame=single]
 %! codeblock: usage_message
   /* Usage message */
-  if(argc < 5) {
+  if(argc < 6) {
     fprintf(stderr, "Usage: %s <trap depth> "
                               "<trap radius> "
                               "<diffusion coefficient> "
-                              "<thermal energy>\n",
+                              "<thermal energy>"
+                              "<dim>\n",
             argv[0]);
     return 0;
   }
@@ -139,9 +141,11 @@ process.
   /* Variable declarations */
   int nruns = 10000;    /* Number of runs */
   int run;              /* Current run */
+  int i;                /* Coordinate index */
   double q[2];          /* Particle position */
   double F[2], Fmod;    /* Force and modulus of force*/
   double r;             /* Distance to origin */
+  double r2;            /* Distance squared */
   long int tstep;       /* Current step */
   long int sumtime = 0; /* Sum of times */
   long int sumt2 = 0;   /* Sum of times squared */
@@ -151,6 +155,7 @@ process.
   double R = atof(argv[2]);  /* Trap radius */
   double D = atof(argv[3]);  /* Diffusion coefficient */
   double kT = atof(argv[4]); /* Thermal energy */
+  int dim = atoi(argv[5]);   /* Dimensionality */
   double M = D/kT;           /* Mobility */
   double dt = 0.0001;        /* Time step */
 %! codeblockend
@@ -167,24 +172,24 @@ normal distribution with null mean and unit standard deviation.
   /* nruns realisations of the stochastic process */
   for(run = 0; run < nruns; run++) {
     /* Reset position */
-    q[0] = q[1] = 0.0;
+    for(i = 0; i < dim; ++i) q[i] = 0.0;
 
     /* Run Brownian dynamics until particle escapes */
     for(tstep = 0; 1; tstep++) {
       /* Particle position */
-      r = sqrt(q[0]*q[0] + q[1]*q[1]);
+      r2 = 0; for(i = 0; i < dim; ++i) r2 += q[i]*q[i];
+      r = sqrt(r2);
 
       /* Break when particle leaves the trap */
       if(r >= R) break;
 
       /* Force vector */
       Fmod = 6.0*E0*(r/R - 1)/(R*R*R);
-      F[0] = Fmod*q[0];
-      F[1] = Fmod*q[1];
+      for(i = 0; i < dim; ++i) F[i] = Fmod*q[i];
 
       /* Euler-Maruyama scheme */
-      q[0] += M*F[0]*dt + Gaussian(0,1)*sqrt(2*D*dt);
-      q[1] += M*F[1]*dt + Gaussian(0,1)*sqrt(2*D*dt);
+      for(i = 0; i < dim; ++i)
+        q[i] += M*F[i]*dt + Gaussian(0,1)*sqrt(2*D*dt);
     }
 
     sumtime += tstep;
@@ -224,9 +229,11 @@ With an operating cubic_spline program, we can easily generate the data files
 using a bash script.
 %! codefile: cubic_spline.sh
 #!/bin/bash
-for D in `seq 0.2 0.2 2`; do ./cubic_spline 1 1 $D 1; done | grep -v "#" > mu_vs_D.dat
-for R in `seq 1 0.2 3`; do ./cubic_spline 1 $R 1 1; done | grep -v "#" > mu_vs_R.dat
-for E0 in `seq 0.25 0.25 7.5`; do ./cubic_spline $E0 1 1 1; done | grep -v "#" > mu_vs_E0.dat
+echo "Running simulations to create data files. This will take fairly long..."
+for D in `seq 0.2 0.2 2`; do ./cubic_spline 1 1 $D 1 2; done | grep -v "#" > mu_vs_D.dat
+for R in `seq 1 0.2 3`; do ./cubic_spline 1 $R 1 1 2; done | grep -v "#" > mu_vs_R.dat
+for E0 in `seq 0.25 0.25 7.5`; do ./cubic_spline $E0 1 1 1 2; done | grep -v "#" > mu_vs_E0.dat
+for E0 in `seq 0.25 0.25 7.5`; do ./cubic_spline $E0 1 1 1 1; done | grep -v "#" > mu_vs_E0_1D.dat
 %! codeend
 
 The next figure plots $mu$ versus D and R to check the validity of Eq.
@@ -305,18 +312,62 @@ unset multiplot
 \end{figure}
 
 
-
-\begin{comment}
-
 \section{Theoretical considerations}
 
 The final step in this small project investigates the shape of function $f$ in
-Eq. (\ref{dimensional_analysis}), following the classical approach by Kramers
-\cite{Kramers1940}. Simply applying Kramer's formula for the escape rate
-without thinking yields
-\begin{equation}
-  \mu = \frac{6 D E_0}{R^2 k_BT} \exp(-\frac{E_0}{k_BT}).
-\end{equation}
+Eq. (\ref{dimensional_analysis}) following the classical approach by Kramers
+\cite{Kramers1940}. First we imagine a one-dimensional setting with a potential
+symmetrical about the origin $r = 0$, so that $V(-r) = V(r)$. Simply applying
+Kramer's formula for the escape rate (taken from \cite{Escape_rate} without much
+reflection) gives
+\begin{align}
+  \mu & = 2 \frac{D}{2 \pi k_BT} \sqrt{V''(0)\ |V''(R)|}
+            e^{-\frac{E_0}{k_BT}} \nonumber \\
+      & = \frac{6 D E_0}{\pi R^2 k_BT} e^{-\frac{E_0}{k_BT}}.
+\end{align}
+
+The extra factor of two in front comes from the two exits from the trap (at
+$r = R$ and $r = -R$). Simulations suggest this factor should in fact be three
+instead. Perhaps this emerges from a discontinuity of $V''$ at $r = R$? Whatever
+the reason, the figure confirms a decay proportional to
+$\frac{E_0}{k_BT} \exp\left(-\frac{E_0}{k_BT}\right)$ (Fig. \ref{mu_vs_E0_1D}).
+
+\begin{comment}
+%! codefile: mu_vs_E0_1D.gnuplot
+set term postscript eps enhanced size 8cm,4cm font "Roman"
+set output "mu_vs_E0_1D.eps"
+set ylabel "{/Symbol m} [a.u.]"
+set xlabel "E_0 / (k_B T)"
+
+mu(x) = 2.82*x*exp(-x)
+
+set multiplot
+plot [0:10][0:2] "mu_vs_E0_1D.dat" u 1:5:6 w errorbars notitle lc -1, \
+                 mu(x) w l dt 2 lc -1 notitle
+set size 0.55, 0.55
+set origin 0.4, 0.4
+set logscale y
+unset xlabel
+unset ylabel
+plot [0:10][:4] "mu_vs_E0_1D.dat" u 1:5:6 w errorbars notitle lc -1, \
+                 mu(x) w l dt 2 lc -1 notitle
+unset multiplot
+%! codeend
+\end{comment}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{mu_vs_E0_1D.eps}
+  \caption{\label{mu_vs_E0_1D}Escape rate versus $\frac{E_0}{k_BT}$ for
+           $\frac{D}{R^2} = 1$ in the one-dimensional version of the problem.
+           Simulation results are drawn with points. The dotted line follows
+           $2.82\ \left(\frac{E_0}{k_BT}\right) e^{-\frac{E_0}{k_BT}}$.
+           The inset shows the points on a logarithmic scale on the vertical
+           axis.}
+\end{figure}
+
+\begin{comment}
+
 
 The data sort of fits the expression
 mu(x) = 2.4*x**2*exp(-x) + 5*exp(-x), where x = E/(k_BT).
@@ -403,6 +454,8 @@ https://www.wolframalpha.com/input/?i=integrate+exp%28E_0*%28-2*%28r%2FR%29%5E3+
 of force and the diffusion model of chemical reactions}, Physica \textbf{7}, 4,
 284--304 (1940).
 
+\bibitem{Escape_rate} \url{https://home.icts.res.in/\~abhi/notes/kram.pdf}.
+
 
 \end{thebibliography}
 
@@ -425,6 +478,8 @@ data:
 figures:
 	gnuplot cubic_spline.gnuplot
 	gnuplot mu_vs_D_and_R.gnuplot
+	gnuplot mu_vs_E0.gnuplot
+	gnuplot mu_vs_E0_1D.gnuplot
 
 weave:
 	latex kramers.tex
