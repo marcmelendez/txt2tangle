@@ -152,7 +152,7 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
     /* See if the first word was a command */
     if(!strncmp(word, command_string,
-                sizeof(command_string[0]))) { /* Command found */
+                strlen(command_string))) { /* Command found */
       command[0] = '\0'; /* Clear previous command */
       sscanf(txtbuf, command_fmt, command); /* Read command */
       /* Choose action */
@@ -223,7 +223,7 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
     if(!strcmp(command, "codeblock")) {
       sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
       if(!strncmp(name, codeblockname,
-        sizeof(codeblockname[0]))) { /* Block found */
+        strlen(codeblockname))) { /* Block found */
         located_codeblock = true;
         break;
       }
