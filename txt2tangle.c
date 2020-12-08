@@ -1,7 +1,7 @@
 /*****************************************************************************
- *                                  txt2tangle                               *
+ *                                 txt2tangle                                *
  *                   A very simple literate programming tool                 *
- *                            Marc Meléndez Schofield                        *
+ *                          Marc Meléndez Schofield                          *
  *****************************************************************************/
 
 /*** Standard libraries ***/

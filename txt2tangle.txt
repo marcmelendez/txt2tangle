@@ -1,8 +1,8 @@
 %! codeblock: title
 /*****************************************************************************
- *                                  txt2tangle                               *
+ *                                 txt2tangle                                *
  *                   A very simple literate programming tool                 *
- *                            Marc Meléndez Schofield                        *
+ *                          Marc Meléndez Schofield                          *
  *****************************************************************************/
 %! codeblockend
 
@@ -99,7 +99,7 @@ Turning to the slightly more interesting auxiliary functions, we first
 encounter output_code. The point here is to open and scan the input text file
 line by line until a txt2tangle command appears. To this end, the function
 looks at every first word, checking for the command string at the beginning.
-When it matches the right pattern, the program enters an if else ladder to
+When it matches the right pattern, the program enters an "if-else" ladder to
 choose the appropriate action. The "codefile" command opens the output code
 file and activates printing, so that scanned lines that do not contain a
 command end up in the code file. "codepause" and "codeend" close the output
