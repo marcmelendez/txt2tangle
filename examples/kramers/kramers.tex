@@ -126,8 +126,8 @@ int main(int argc, char * argv[])
 %! codeend
 \end{comment}
 
-Following the usage message, we declare the values and parameters needed for the
-Brownian simulation. The jagged trajectory of Brownian motion results from
+Following the usage message, we declare the parameters and variables needed for
+the Brownian simulation. The jagged trajectory of Brownian motion results from
 integrating the (It\=o) stochastic differential equation
 \begin{equation}
   d\mathbf{r} = M \mathbf{F}(\mathbf{r})\ dt + \sqrt{2 D}\ d\mathbf{W},
@@ -138,18 +138,6 @@ process.
 
 \begin{lstlisting}[frame=single]
 %! codeblock: variable_declarations
-  /* Variable declarations */
-  int nruns = 10000;    /* Number of runs */
-  int run;              /* Current run */
-  int i;                /* Coordinate index */
-  double q[2];          /* Particle position */
-  double F[2], Fmod;    /* Force and modulus of force*/
-  double r;             /* Distance to origin */
-  double r2;            /* Distance squared */
-  long int tstep;       /* Current step */
-  long int sumtime = 0; /* Sum of times */
-  long int sumt2 = 0;   /* Sum of times squared */
-
   /* Simulation parameters */
   double E0 = atof(argv[1]); /* Trap depth */
   double R = atof(argv[2]);  /* Trap radius */
@@ -158,6 +146,18 @@ process.
   int dim = atoi(argv[5]);   /* Dimensionality */
   double M = D/kT;           /* Mobility */
   double dt = 0.0001;        /* Time step */
+
+  /* Variable declarations */
+  int nruns = 10000;    /* Number of runs */
+  int run;              /* Current run */
+  int i;                /* Coordinate index */
+  double q[dim];        /* Particle position */
+  double F[dim], Fmod;  /* Force and modulus of force*/
+  double r;             /* Distance to origin */
+  double r2;            /* Distance squared */
+  long int tstep;       /* Current step */
+  long int sumtime = 0; /* Sum of times */
+  long int sumt2 = 0;   /* Sum of times squared */
 %! codeblockend
 \end{lstlisting}
 
