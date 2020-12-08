@@ -104,6 +104,9 @@ text document. A minimal example follows.
 > \begin{document}
 > \lstset{morecomment = [is]{\%!}{\^^M}}
 >
+> Here is a ``Hello, World!'' program written for the bc
+> command line calculator.
+>
 > \begin{lstlisting}[frame=single]
 > %! codefile: helloworld.bc
 > print "Hello, World!\n";
