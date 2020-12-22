@@ -204,11 +204,12 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
   bool located_codeblock;
 
   /* Read code block name (and input file name, if necessary)  */
+  inputfilename[0] = '\0';
   if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) >= 2) {
     inputfile = fopen(inputfilename, "r");
   } else {
     inputfile = fopen(defaultfilename, "r");
-    strncpy(inputfilename, defaultfilename, strlen(defaultfilename));
+    strncpy(inputfilename, defaultfilename, strlen(defaultfilename) + 1);
   }
   if(inputfile == NULL) {
     fprintf(stderr, "Error: Unable to open file (%s).\n", inputfilename);
