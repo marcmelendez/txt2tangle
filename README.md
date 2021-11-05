@@ -28,7 +28,7 @@ From this text file, **txt2tangle** would create the
 
 As a matter of fact, the files for this project were
 created by **txt2tangle** from just two plain text files:
-`txt2tangle.txt`, which contains the information to
+`txt2tangledoc.txt`, which contains the information to
 generate this README file and the Makefile, and
 `txt2tangle.txt`, which contains the C code to make the
 **txt2tangle** executable file.
@@ -103,6 +103,9 @@ text document. A minimal example follows.
 >
 > \begin{document}
 > \lstset{morecomment = [is]{\%!}{\^^M}}
+>
+> Here is a ``Hello, World!'' program written for the bc
+> command line calculator.
 >
 > \begin{lstlisting}[frame=single]
 > %! codefile: helloworld.bc

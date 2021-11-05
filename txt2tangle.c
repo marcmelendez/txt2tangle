@@ -1,7 +1,7 @@
 /*****************************************************************************
- *                                  txt2tangle                               *
+ *                                 txt2tangle                                *
  *                   A very simple literate programming tool                 *
- *                            Marc Meléndez Schofield                        *
+ *                          Marc Meléndez Schofield                          *
  *****************************************************************************/
 
 /*** Standard libraries ***/
@@ -26,6 +26,7 @@
 
 /*** Definitions ***/
 
+# define max(a,b) ((a)>(b))?a:b
 typedef enum {false = 0, true} bool;
 
 /*** Auxiliary functions ***/
@@ -34,7 +35,7 @@ typedef enum {false = 0, true} bool;
 int output_code(char * filename, char * command_string, char * command_fmt);
 
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
                 FILE * outputfile, int recursion_level);
 
 /* Output a buffer to a file as is (no format string interpretation) */
@@ -152,7 +153,7 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
     /* See if the first word was a command */
     if(!strncmp(word, command_string,
-                sizeof(command_string[0]))) { /* Command found */
+                strlen(command_string))) { /* Command found */
       command[0] = '\0'; /* Clear previous command */
       sscanf(txtbuf, command_fmt, command); /* Read command */
       /* Choose action */
@@ -189,14 +190,13 @@ int output_code(char * filename, char * command_string, char * command_fmt)
   return 0;
 }
 /* Insert code from file */
-int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
+int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
                 FILE * outputfile, int recursion_level)
 {
   if(recursion_level >= MAX_RECURSION_LEVEL) {
     fprintf(stderr, "Error: maximum recursion level exceeded.\n");
     exit(-2);
   }
-
   char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE];
   char command[20];
   char name[TEXT_BUFFER_SIZE];
@@ -204,10 +204,12 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
   bool located_codeblock;
 
   /* Read code block name (and input file name, if necessary)  */
-  if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) == 2) {
+  inputfilename[0] = '\0';
+  if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) >= 2) {
     inputfile = fopen(inputfilename, "r");
   } else {
-    inputfile = fopen(defaultfile, "r");
+    inputfile = fopen(defaultfilename, "r");
+    strncpy(inputfilename, defaultfilename, strlen(defaultfilename) + 1);
   }
   if(inputfile == NULL) {
     fprintf(stderr, "Error: Unable to open file (%s).\n", inputfilename);
@@ -221,9 +223,10 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfile,
     command[0] = '\0'; /* Clear previous word */
     sscanf(txtbuf, command_fmt, command); /* Look for codeblock command */
     if(!strcmp(command, "codeblock")) {
+      name[0] = '\0'; /* Clear previous name */
       sscanf(txtbuf, "%*[^:]: %s", name); /* Get code block name */
       if(!strncmp(name, codeblockname,
-        sizeof(codeblockname[0]))) { /* Block found */
+        max(strlen(codeblockname),strlen(name)))) { /* Block found */
         located_codeblock = true;
         break;
       }
