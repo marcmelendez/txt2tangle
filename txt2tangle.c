@@ -181,7 +181,11 @@ int output_code(char * filename, char * command_string, char * command_fmt)
         printing = false;
         fclose(outputfile);
       } else if(!strcmp(command, "codeinsert")) { /* Insert a code block */
-        insert_code(txtbuf, command_fmt, filename, outputfile, 0);
+        if(printing)
+          insert_code(txtbuf, command_fmt, filename, outputfile, 0);
+        else
+          fprintf(stderr, "Error: Attempt to insert code without specifying "
+                          "a destination file.\n");
       }
     }
     else {
