@@ -6,8 +6,10 @@
 
 /*** Standard libraries ***/
 
+# define _GNU_SOURCE
 # include <stdio.h>
 # include <stdlib.h>
+# include <unistd.h>
 # include <string.h>
 
 /*** PREPROCESSOR OPTIONS ***/
@@ -33,6 +35,9 @@ typedef enum {false = 0, true} bool;
 
 /* Output code snippets from literate programming source file */
 int output_code(char * filename, char * command_string, char * command_fmt);
+
+/* Copy the path of a filename to the pathname string */
+int copy_path(char * filename, char * pathname);
 
 /* Insert code from file */
 int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
@@ -189,6 +194,22 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
   return 0;
 }
+/* Copy the path of a filename to the pathname string */
+int copy_path(char * pathname, char * filename)
+{
+  int pathlength = 0;
+  for(int i = 0; i < TEXT_BUFFER_SIZE; ++i) {
+    if(filename[i] == '/') pathlength = i;
+    else if(filename[i] == '\0') {
+      strncpy(pathname, filename, pathlength);
+      pathname[pathlength] = '\0';
+      return 0;
+    }
+  }
+  fprintf(stderr, "Error: filename exceeds maximum text buffer size.\n");
+  exit(-1);
+  return 0;
+}
 /* Insert code from file */
 int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
                 FILE * outputfile, int recursion_level)
@@ -197,10 +218,12 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
     fprintf(stderr, "Error: maximum recursion level exceeded.\n");
     exit(-2);
   }
-  char inputfilename[TEXT_BUFFER_SIZE], codeblockname[TEXT_BUFFER_SIZE];
+  char inputfilename[TEXT_BUFFER_SIZE], inputpathname[TEXT_BUFFER_SIZE];
+  char codeblockname[TEXT_BUFFER_SIZE];
   char command[20];
   char name[TEXT_BUFFER_SIZE];
   FILE * inputfile = NULL;
+  char * callerpathname = get_current_dir_name(); /* Caller file directory */
   bool located_codeblock;
 
   /* Read code block name (and input file name, if necessary)  */
@@ -212,9 +235,15 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
     strncpy(inputfilename, defaultfilename, strlen(defaultfilename) + 1);
   }
   if(inputfile == NULL) {
-    fprintf(stderr, "Error: Unable to open file (%s).\n", inputfilename);
+    fprintf(stderr, "Error: Unable to open file (%s/%s).\n",
+                    get_current_dir_name(),
+                    inputfilename);
     return -1;
   }
+
+  /* Find path to input file and move to input file directory */
+  copy_path(inputpathname, inputfilename);
+  chdir(inputpathname);
 
   /* Find beginning of code block */
   located_codeblock = false;
@@ -255,6 +284,10 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
       output_buffer(outputfile, txtbuf);
     }
   }
+
+  /* Return to caller file directory */
+  chdir(callerpathname);
+  free(callerpathname);
 
   return 0;
 }
