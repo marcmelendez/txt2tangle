@@ -84,7 +84,7 @@ int main(int argc, char * argv[])
       }
     }
     else {
-      filename = malloc(sizeof(char)*strlen(argv[i]));
+      filename = malloc(sizeof(char)*(strlen(argv[i]) + 1));
       strcpy(filename, argv[i]);
     }
   }
@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
 
   /* Default command string */
   if(command_string == NULL) {
-    command_string = malloc(sizeof(char)*strlen(DEFAULT_COMMAND_STRING));
+    command_string = malloc(sizeof(char)*(strlen(DEFAULT_COMMAND_STRING) + 1));
     strcpy(command_string, DEFAULT_COMMAND_STRING);
   }
 
@@ -229,12 +229,12 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
 
   /* Read code block name (and input file name, if necessary)  */
   inputfilename[0] = '\0';
-  if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) >= 2) {
-    inputfile = fopen(inputfilename, "r");
-  } else {
-    inputfile = fopen(defaultfilename, "r");
-    strncpy(inputfilename, defaultfilename, strlen(defaultfilename) + 1);
+  if(sscanf(txtbuf, "%*[^:]: %s src: %s", codeblockname, inputfilename) < 2) {
+    strcpy(inputfilename, defaultfilename);
   }
+
+  inputfile = fopen(inputfilename, "r");
+
   if(inputfile == NULL) {
     fprintf(stderr, "Error: Unable to open file (%s/%s).\n",
                     get_current_dir_name(),
