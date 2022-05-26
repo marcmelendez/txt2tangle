@@ -37,11 +37,11 @@ typedef enum {false = 0, true} bool;
 int output_code(char * filename, char * command_string, char * command_fmt);
 
 /* Copy the path of a filename to the pathname string */
-int copy_path(char * filename, char * pathname);
+int copy_path(char * filename, char * pathname, char * basename);
 
 /* Insert code from file */
 int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
-                FILE * outputfile, int recursion_level);
+                FILE * outputfile, int recursion_level, bool definition);
 
 /* Output a buffer to a file as is (no format string interpretation) */
 int output_buffer(FILE * outputfile, char * txtbuf);
@@ -182,7 +182,10 @@ int output_code(char * filename, char * command_string, char * command_fmt)
         fclose(outputfile);
       } else if(!strcmp(command, "codeinsert")) { /* Insert a code block */
         if(printing)
-          insert_code(txtbuf, command_fmt, filename, outputfile, 0);
+          insert_code(txtbuf, command_fmt, filename, outputfile, 0, false);
+      } else if(!strcmp(command, "codedefinition")) { /* Insert a definition */
+        if(printing)
+          insert_code(txtbuf, command_fmt, filename, outputfile, 0, true);
       }
     }
     else {
@@ -195,14 +198,16 @@ int output_code(char * filename, char * command_string, char * command_fmt)
 
   return 0;
 }
-/* Copy the path of a filename to the pathname string */
-int copy_path(char * pathname, char * filename)
+/* Copy the path and basename of a filename to separate strings */
+int copy_path(char * filename, char * pathname, char * basename)
 {
   int pathlength = 0;
   for(int i = 0; i < TEXT_BUFFER_SIZE; ++i) {
     if(filename[i] == '/') pathlength = i;
     else if(filename[i] == '\0') {
       strncpy(pathname, filename, pathlength);
+      if(pathlength > 0) strcpy(basename, &filename[pathlength + 1]);
+      else strcpy(basename, filename);
       pathname[pathlength] = '\0';
       return 0;
     }
@@ -213,19 +218,28 @@ int copy_path(char * pathname, char * filename)
 }
 /* Insert code from file */
 int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
-                FILE * outputfile, int recursion_level)
+                FILE * outputfile, int recursion_level, bool definition)
 {
   if(recursion_level >= MAX_RECURSION_LEVEL) {
     fprintf(stderr, "Error: maximum recursion level exceeded.\n");
     exit(-2);
   }
   char inputfilename[TEXT_BUFFER_SIZE], inputpathname[TEXT_BUFFER_SIZE];
+  char inputbasename[TEXT_BUFFER_SIZE];
   char codeblockname[TEXT_BUFFER_SIZE];
   char command[20];
   char name[TEXT_BUFFER_SIZE];
   FILE * inputfile = NULL;
+  char callerfilename[TEXT_BUFFER_SIZE], callerbasename[TEXT_BUFFER_SIZE];
+  char parentpathname[TEXT_BUFFER_SIZE];
   char * callerpathname = get_current_dir_name(); /* Caller file directory */
   bool located_codeblock;
+
+  /* Build caller block file name */
+  copy_path(defaultfilename, parentpathname, callerbasename);
+  strcpy(callerfilename, callerpathname);
+  strcat(callerfilename, "/");
+  strcat(callerfilename, callerbasename);
 
   /* Read code block name (and input file name, if necessary)  */
   inputfilename[0] = '\0';
@@ -233,18 +247,28 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
     strcpy(inputfilename, defaultfilename);
   }
 
-  inputfile = fopen(inputfilename, "r");
+  /* Open file (using the right path) */
+  if(!definition) inputfile = fopen(inputfilename, "r");
+  else {
+    copy_path(inputfilename, inputpathname, inputbasename);
+    if(parentpathname[0] != '\0') strcat(parentpathname, "/");
+    if(parentpathname[0] == '/') strcat(parentpathname, inputbasename);
+    else strcat(parentpathname, inputfilename);
+    inputfile = fopen(parentpathname, "r");
+  }
 
   if(inputfile == NULL) {
     fprintf(stderr, "Error: Unable to open file (%s/%s).\n",
                     get_current_dir_name(),
-                    inputfilename);
+                    inputbasename);
     return -1;
   }
 
-  /* Find path to input file and move to input file directory */
-  copy_path(inputpathname, inputfilename);
-  chdir(inputpathname);
+  /* Find path to input file and move to input file directory if necessary */
+  if(!definition) {
+    copy_path(inputfilename, inputpathname, inputbasename);
+    chdir(inputpathname);
+  }
 
   /* Find beginning of code block */
   located_codeblock = false;
@@ -279,15 +303,18 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
       fclose(inputfile);
       break;
     } else if(!strcmp(command, "codeinsert")) {
-       insert_code(txtbuf, command_fmt, inputfilename, outputfile,
-                   recursion_level + 1);
+       insert_code(txtbuf, command_fmt, inputbasename, outputfile,
+                   recursion_level + 1, false);
+    } else if(!strcmp(command, "codedefinition")) {
+       insert_code(txtbuf, command_fmt, callerfilename, outputfile,
+                   recursion_level + 1, true);
     } else {
       output_buffer(outputfile, txtbuf);
     }
   }
 
-  /* Return to caller file directory */
-  chdir(callerpathname);
+  /* Return to caller file directory if necessary */
+  if(!definition) chdir(callerpathname);
   free(callerpathname);
 
   return 0;

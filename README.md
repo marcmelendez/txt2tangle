@@ -60,6 +60,11 @@ specified.
 specified block from the source file mentioned. If no
 source file was named, the current file being read is
 assumed.
+* `%! codedefinition: <blockname>` or
+`%! codedefinition: <blockname> src: <filename>` behaves
+just like `codeinsert` with one simple difference: the
+path of the source file is interpreted relative to the
+parent calling block.
 
 ## Command-line options
 

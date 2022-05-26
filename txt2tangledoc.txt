@@ -112,7 +112,7 @@ txt2tangle statements in the README file. You can also
 bring in code from another source file by adding the
 filename to the code insertion command, writing something
 like "%! insertcode: myBlock src: myOtherFile". Code blocks
-may include "%! insertcode" statements.
+may also include "%! insertcode" statements.
 
 Thus concludes our tour of txt2tangle. That is all there is
 to the program. A quick-reference list of the commands
@@ -138,6 +138,11 @@ specified.
 specified block from the source file mentioned. If no
 source file was named, the current file being read is
 assumed.
+* `%! codedefinition: <blockname>` or
+`%! codedefinition: <blockname> src: <filename>` behaves
+just like `codeinsert` with one simple difference: the
+path of the source file is interpreted relative to the
+parent calling block.
 
 ## Command-line options
 
