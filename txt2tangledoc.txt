@@ -269,6 +269,7 @@ instructions before parsing, as below.
 > %! preproc: '%!([ \t]*)codefile:(.*)$' ''
 > %! preproc: '%!([ \t]*)codeblock:(.*)$' ''
 > %! preproc: '%!([ \t]*)codeinsert:(.*)$' ''
+> %! preproc: '%!([ \t]*)codedefinition:(.*)$' ''
 > %! preproc: '%!([ \t]*)codepause(.*)$' ''
 > %! preproc: '%!([ \t]*)codeend(.*)$' ''
 >
