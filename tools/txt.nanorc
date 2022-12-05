@@ -1,0 +1,9 @@
+syntax "txt2tangle" "\.txt"
+magic "(ASCII|UTF-8 Unicode)"
+comment "%"
+
+color brightcyan start="%![ ]*(codefile|codecontinue):" end="%![ ]*(codepause|codeend)"
+color brightcyan start="%![ ]*codeblock:" end="%![ ]* codeblockend"
+color brightyellow start="(codefile|codeblock|codeinsert):" end="$"
+color brightblue "%![ ]*\<(codefile|codepause|codeend|codecontinue|codeblock|codeblockend)\>:?"
+color brightmagenta "%![ ]*codeinsert:"
