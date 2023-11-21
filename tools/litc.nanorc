@@ -38,3 +38,4 @@ color white start="%![ ]*\<(codepause|codeend|codeblockend|begin)\>" end="%![ ]*
 color brightyellow start="(codefile|codeblock|codeinsert|codecontinue):" end="$"
 color brightcyan "%![ ]*\<(begin|codefile|codepause|codeend|codecontinue|codeblock|codeblockend|end)\>:?"
 color brightmagenta "%![ ]*codeinsert:"
+color brightcyan start="%![ ]*codecomment:" end="$"

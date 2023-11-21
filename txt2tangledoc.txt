@@ -143,6 +143,8 @@ assumed.
 just like `codeinsert` with one simple difference: the
 path of the source file is interpreted relative to the
 parent calling block.
+* `%! codecomment: <text>` Ignored by txt2tangle. This line
+will not appear in the tangle output.
 
 ## Command-line options
 

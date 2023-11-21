@@ -333,6 +333,8 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
     } else if(!strcmp(command, "codedefinition")) {
        insert_code(txtbuf, command_fmt, callerfilename, outputfile,
                    recursion_level + 1, true);
+    } else if(!strcmp(command, "codecomment")) {
+       /* Do nothing (ignore the line) */
     } else {
       output_buffer(outputfile, txtbuf);
     }
