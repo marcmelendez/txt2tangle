@@ -132,6 +132,12 @@ int output_code(char * filename, char * command_string, char * command_fmt)
     return -1;
   }
 
+  /* Move to target directory */
+  char targetdir[TEXT_BUFFER_SIZE], targetbase[TEXT_BUFFER_SIZE];
+  copy_path(filename, targetdir, targetbase);
+  char * cwd = get_current_dir_name();
+  chdir(targetdir);
+
   char txtbuf[TEXT_BUFFER_SIZE], word[TEXT_BUFFER_SIZE], command[20];
   char outputfilename[TEXT_BUFFER_SIZE];
   FILE * outputfile = NULL;
@@ -186,6 +192,7 @@ int output_code(char * filename, char * command_string, char * command_fmt)
   }
 
   fclose(sourcefile);
+  chdir(cwd);
 
   return 0;
 }
