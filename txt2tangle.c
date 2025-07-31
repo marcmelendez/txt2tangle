@@ -258,17 +258,19 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
   }
 
   if(inputfile == NULL) {
-    fprintf(stderr, "Error: Unable to open file (%s/%s).\n",
-                    get_current_dir_name(),
-                    inputbasename);
+    if(!definition)
+      fprintf(stderr, "Error: Unable to open file (%s/%s).\n",
+                      get_current_dir_name(),
+                      inputbasename);
+    else
+      fprintf(stderr, "Error: Unable to open file (%s).\n",
+                      inputfilename);
     return -1;
   }
 
   /* Find path to input file and move to input file directory if necessary */
-  if(!definition) {
     copy_path(inputfilename, inputpathname, inputbasename);
     chdir(inputpathname);
-  }
 
   /* Find beginning of code block */
   located_codeblock = false;
@@ -308,13 +310,15 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
     } else if(!strcmp(command, "codedefinition")) {
        insert_code(txtbuf, command_fmt, callerfilename, outputfile,
                    recursion_level + 1, true);
+    } else if(!strcmp(command, "codecomment")) {
+       /* Do nothing (ignore the line) */
     } else {
       output_buffer(outputfile, txtbuf);
     }
   }
 
   /* Return to caller file directory if necessary */
-  if(!definition) chdir(callerpathname);
+  chdir(callerpathname);
   free(callerpathname);
 
   return 0;
