@@ -344,6 +344,10 @@ int insert_code(char * txtbuf, char * command_fmt, char * defaultfilename,
                    recursion_level + 1, true);
     } else if(!strcmp(command, "codecomment")) {
        /* Do nothing (ignore the line) */
+    } else if(!strcmp(command, "codepause")) {
+       fprintf(stderr, "Error: codepause inside codeblock: %s.\n",
+               codeblockname);
+       exit(-1);
     } else {
       output_buffer(outputfile, txtbuf);
     }
